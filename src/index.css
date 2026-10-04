@@ -1,0 +1,14 @@
+body {
+    margin: 20px;
+}
+
+.board-row {
+    display: flex;
+}
+
+.square {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+    margin: 2px;
+}
