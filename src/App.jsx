@@ -1,43 +1,91 @@
 import { useState } from 'react';
+import './App.css';
 
-function Square({ value ,onSqaureClick}) {
-    
-    return (
-        <button className="square" onClick={onSqaureClick}>
-            {value}
-        </button>
-    );
-    
+const WINNING_LINES = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+];
+
+function calculateWinner(squares) {
+  for (const [a, b, c] of WINNING_LINES) {
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      return { winner: squares[a], line: [a, b, c] };
+    }
+  }
+
+  return { winner: null, line: [] };
 }
 
 export default function App() {
-    const [squares, setSquares] = useState(Array(9).fill(null));
+  const [squares, setSquares] = useState(Array(9).fill(null));
+  const [xIsNext, setXIsNext] = useState(true);
 
-    function handleClick(i){
-        const nextSquares = squares.slice();
-        nextSquares[i] = 'X';
-        setSquares(nextSquares);
+  const winnerInfo = calculateWinner(squares);
+  const winner = winnerInfo.winner;
+  const draw = !winner && squares.every(Boolean);
+
+  const status = winner
+    ? `Winner: ${winner}`
+    : draw
+      ? "It's a draw!"
+      : `Next player: ${xIsNext ? 'X' : 'O'}`;
+
+  function handleClick(index) {
+    if (squares[index] || winner || draw) {
+      return;
     }
 
-    return (
-        <>
-            <div className="board-row">
-                <Square value = {squares[0]} onSqaureClick={() => handleClick(0)}/>
-                <Square value = {squares[1]} onSqaureClick={() => handleClick(1)}/>
-                <Square value = {squares[2]} onSqaureClick={() => handleClick(2)}/>
-            </div>
+    const nextSquares = squares.slice();
+    nextSquares[index] = xIsNext ? 'X' : 'O';
+    setSquares(nextSquares);
+    setXIsNext((current) => !current);
+  }
 
-            <div className="board-row">
-                <Square value = {squares[3]} onSqaureClick={() => handleClick(3)}/>
-                <Square value = {squares[4]} onSqaureClick={() => handleClick(4)}/>
-                <Square value = {squares[5]} onSqaureClick={() => handleClick(5)}/>
-            </div>
+  function resetGame() {
+    setSquares(Array(9).fill(null));
+    setXIsNext(true);
+  }
 
-            <div className="board-row">
-                <Square value = {squares[6]} onSqaureClick={() => handleClick(6)}/>
-                <Square value = {squares[7]} onSqaureClick={() => handleClick(7)}/> 
-                <Square value = {squares[8]} onSqaureClick={() => handleClick(8)}/>
-            </div>
-        </>
-    );
+  return (
+    <main className="app-shell">
+      <div className="game-card">
+        <div className="header">
+          <p className="eyebrow">Classic challenge</p>
+          <h1>Tic-Tac-Toe</h1>
+        </div>
+
+        <div className={`status-badge ${winner ? 'winner' : draw ? 'draw' : ''}`}>
+          {status}
+        </div>
+
+        <div className="board" role="grid" aria-label="Tic-tac-toe board">
+          {squares.map((square, index) => {
+            const isWinningSquare = winnerInfo.line.includes(index);
+
+            return (
+              <button
+                key={index}
+                type="button"
+                className={`square ${square ? 'filled' : ''} ${isWinningSquare ? 'winning' : ''}`}
+                onClick={() => handleClick(index)}
+                aria-label={`Cell ${index + 1}${square ? `, ${square}` : ''}`}
+              >
+                {square}
+              </button>
+            );
+          })}
+        </div>
+
+        <button type="button" className="reset-button" onClick={resetGame}>
+          New game
+        </button>
+      </div>
+    </main>
+  );
 }
